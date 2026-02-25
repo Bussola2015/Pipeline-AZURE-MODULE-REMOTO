@@ -39,13 +39,12 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
 
       - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color
-        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform plan -var="my_ip=${{ secrets.MY_IP }}" -var-file="terraform.tfvars" -no-color
+        working-directory: ${{ env.WORKING_DIR }}      
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+        run: terraform apply -var="my_ip=${{ secrets.MY_IP }}" -var-file="terraform.tfvars" -auto-approve
         working-directory: ${{ env.WORKING_DIR }}
 
       # Upload da chave .pem gerada pelo tls_private_key

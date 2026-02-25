@@ -12,22 +12,23 @@ resource "azurerm_network_security_group" "nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "${chomp(data.http.my_ip.response_body)}/32" ## Pegamos o corpo da resposta HTTP e adicionamos o prefixo /32
+    source_address_prefix      = "${var.my_ip}/32"
+    #source_address_prefix      = "${chomp(data.http.my_ip.response_body)}/32" ## Pegamos o corpo da resposta HTTP e adicionamos o prefixo /32
     destination_address_prefix = "*"
   }
 
   # NOVA REGRA: Liberar HTTP para o Nginx
-  security_rule {
-    name                       = "HTTP"
-    priority                   = 110 # Prioridade logo após o SSH
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80" # Porta do Nginx
-    source_address_prefix      = "*"  # Permitir acesso de qualquer IP (Público)  ----  pode ser para teste somente o meu: "${chomp(data.http.my_ip.response_body)}/32"
-    destination_address_prefix = "*"
-  }
+  # security_rule {
+  #   name                       = "HTTP"
+  #   priority                   = 110 # Prioridade logo após o SSH
+  #   direction                  = "Inbound"
+  #   access                     = "Allow"
+  #   protocol                   = "Tcp"
+  #   source_port_range          = "*"
+  #   destination_port_range     = "80" # Porta do Nginx
+  #   source_address_prefix      = "*"  # Permitir acesso de qualquer IP (Público)  ----  pode ser para teste somente o meu: "${chomp(data.http.my_ip.response_body)}/32"
+  #   destination_address_prefix = "*"
+  # }
 
   tags = local.common_tags
 

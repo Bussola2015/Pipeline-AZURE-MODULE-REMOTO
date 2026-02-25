@@ -10,7 +10,7 @@ resource "tls_private_key" "rsa_key" {
 # a chave é injetada diretamente na criação da VM.
 resource "local_file" "private_key" {
   content         = tls_private_key.rsa_key.private_key_pem
-  filename        = "./azure-key.pem"
+  filename        = var.private_key_path
   file_permission = "0400"
 }
 #https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file
