@@ -3,7 +3,7 @@
 #   url = "https://ifconfig.me/ip"
 # }
 
-data "http" "my_ip" {
-  # Esta URL da OpenDNS força o retorno apenas do IPv4
-  url = "https://ipv4.icanhazip.com"
-}
+# data "http" "my_ip" {
+#   # Esta URL da OpenDNS força o retorno apenas do IPv4
+#   url = "https://ipv4.icanhazip.com"
+# }
