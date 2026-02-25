@@ -15,6 +15,7 @@ terraform {
     storage_account_name = "stjuniorbussolastate"
     container_name       = "remote-state"
     key                  = "azure-vm-modulos-remotos-pipeline/terraform.tfstate"
+    # O Lock aqui é automático via Blob Lease! (Nativo)
   }
 
 }
@@ -35,5 +36,8 @@ module "network" {
   subnet_names            = ["subnet-${var.environment}"]
   tags                    = local.common_tags
   vnet_name               = "vnet-${var.environment}"
+
+  # GARANTIA DE ORDEM: Só cria a rede após o RG estar pronto
+  #depends_on = [azurerm_resource_group.resource_group]
 }
 

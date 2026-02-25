@@ -1,0 +1,57 @@
+name: "Terraform Azure Plan & Apply"
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'environments/dev/**' ]   # ** wildcard para recursão em subdiretórios 
+  pull_request:
+    branches: [ main ]
+    paths: [ 'environments/dev/**' ]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-22.04
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      WORKING_DIR: ./environments/dev
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
+        working-directory: ${{ env.WORKING_DIR }}
+
+      # Upload da chave .pem gerada pelo tls_private_key
+      - name: Upload SSH Key
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: azure-key-pem
+          path: ${{ env.WORKING_DIR }}/azure-key.pem
