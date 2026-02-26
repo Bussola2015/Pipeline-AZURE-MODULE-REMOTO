@@ -12,6 +12,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       WORKING_DIR: ./environments/dev
+      TF_PLUGIN_CACHE_DIR: ~/.terraform.d/plugin-cache # Mantém a performance do Terraform
 
     steps:
       - name: Checkout
@@ -19,6 +20,13 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      # Reaproveita o cache criado pelo pipeline de Apply
+      - name: Cache Terraform Plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
 
       - name: Terraform Init
         run: terraform init
@@ -32,3 +40,18 @@ jobs:
       # - name: Terraform Destroy
       #   run: terraform destroy -auto-approve
       #   working-directory: ${{ env.WORKING_DIR }}
+
+      # Notificação Final no Telegram
+      - name: Notificar Telegram
+        if: always()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            💣 *Terraform Destroy Executado*
+            📊 *Status:* ${{ job.status == 'success' && '✅ SUCESSO' || '❌ FALHA' }}
+            📂 *Repo:* `${{ github.repository }}`
+            👤 *Por:* ${{ github.actor }}
+            🔗 [Ver Log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
