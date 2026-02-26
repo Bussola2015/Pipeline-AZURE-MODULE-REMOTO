@@ -1,5 +1,5 @@
-location    = "Brazil South"
-environment = "dev"
+location         = "Brazil South"
+environment      = "dev"
 private_key_path = "./azure-key.pem"
 # my_ip = "valor_removido_por_seguranca"
 
