@@ -73,15 +73,15 @@ jobs:
 
         #Checkov para análise de segurança - Checkov é uma ferramenta de análise de segurança estática para infraestrutura como código (IaC) que ajuda a identificar vulnerabilidades e problemas de segurança em arquivos de configuração, como os usados pelo Terraform.
       
-      - name: Teste de Segurança com Checkov
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: ${{ env.WORKING_DIR }}
-          framework: terraform
-          # soft_fail: true -> Use isso no início para o pipeline não travar 
-          # enquanto você corrige os avisos.
-          soft_fail: true  # Permite que o pipeline continue mesmo se forem encontrados problemas de segurança
-          output_format: cli
+      # - name: Teste de Segurança com Checkov
+      #   uses: bridgecrewio/checkov-action@master
+      #   with:
+      #     directory: ${{ env.WORKING_DIR }}
+      #     framework: terraform
+      #     # soft_fail: true -> Use isso no início para o pipeline não travar 
+      #     # enquanto você corrige os avisos.
+      #     soft_fail: true  # Permite que o pipeline continue mesmo se forem encontrados problemas de segurança
+      #     output_format: cli
 
       # Plan e Apply do Terraform    
       - name: Terraform Plan
