@@ -3,7 +3,11 @@ name: "Terraform Azure Plan & Apply"
 on:
   push:
     branches: [ main ]
-    paths: [ 'environments/dev/**' ]   # ** wildcard para recursão em subdiretórios 
+    paths: 
+      - 'environments/dev/**'   # ** wildcard para recursão em subdiretórios 
+      - '.github/workflows/**'  # Roda se mudar o pipeline
+      #- '.tflint.hcl'           # Roda se mudar as regras de lint
+
   pull_request:
     branches: [ main ]
     paths: [ 'environments/dev/**' ]
