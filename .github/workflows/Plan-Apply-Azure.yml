@@ -22,6 +22,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       WORKING_DIR: ./environments/dev
+      TF_PLUGIN_CACHE_DIR: ~/.terraform.d/plugin-cache   # Ativa o cache de plugins
 
     steps:
       - name: Checkout
@@ -30,6 +31,24 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.61.0  
+
+      # Cache de Plugins do Terraform - isso ajuda a acelerar o pipeline evitando baixar os plugins toda vez.
+      - name: Cache Terraform Plugins
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      - name: Create Plugin Cache Dir
+        run: mkdir -p ~/.terraform.d/plugin-cache
+      
+      # terraform init  
       - name: Terraform Init
         run: terraform init
         working-directory: ${{ env.WORKING_DIR }}
@@ -38,6 +57,33 @@ jobs:
         run: terraform fmt -check
         working-directory: ${{ env.WORKING_DIR }}
 
+      # Linting com TFLint - uma ferramenta de linting para Terraform que ajuda a identificar problemas de configuração, práticas recomendadas e erros comuns.
+      # Análise de qualidade com TFLint 
+
+      - name: Init TFLint
+        # O init precisa saber onde está o config para baixar o plugin azurerm
+        run: tflint --init --config ../../.tflint.hcl
+        working-directory: ${{ env.WORKING_DIR }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # O GitHub preenche isso sozinho! Para rate limit do GitHub não travar o pipeline por não ter baixado o plugin do Azure.
+
+      - name: Run TFLint
+        run: tflint -f compact --config ../../.tflint.hcl
+        working-directory: ${{ env.WORKING_DIR }}
+
+        #Checkov para análise de segurança - Checkov é uma ferramenta de análise de segurança estática para infraestrutura como código (IaC) que ajuda a identificar vulnerabilidades e problemas de segurança em arquivos de configuração, como os usados pelo Terraform.
+      
+      - name: Teste de Segurança com Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ${{ env.WORKING_DIR }}
+          framework: terraform
+          # soft_fail: true -> Use isso no início para o pipeline não travar 
+          # enquanto você corrige os avisos.
+          soft_fail: true  # Permite que o pipeline continue mesmo se forem encontrados problemas de segurança
+          output_format: cli
+
+      # Plan e Apply do Terraform    
       - name: Terraform Plan
         run: terraform plan -var="my_ip=${{ secrets.MY_IP }}" -var-file="terraform.tfvars" -no-color
         working-directory: ${{ env.WORKING_DIR }}      
@@ -54,3 +100,20 @@ jobs:
         with:
           name: azure-key-pem
           path: ${{ env.WORKING_DIR }}/azure-key.pem
+
+      # # Notificação Final via Telegram
+      - name: Notificar Telegram
+        if: always() # Garante que você receba o aviso mesmo em caso de erro
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: markdown
+          message: |
+            🚀 *Pipeline Terraform*
+            📊 *Status:* ${{ job.status == 'success' && '✅ SUCESSO' || '❌ FALHA' }}
+            📂 *Repo:* `${{ github.repository }}`
+            🛠 *Ação:* `${{ github.workflow }}`
+            👤 *Por:* ${{ github.actor }}
+            
+            🔗 [Acompanhar Log aqui](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
