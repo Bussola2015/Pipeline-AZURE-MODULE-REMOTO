@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths: 
       - 'environments/dev/**'   # ** wildcard para recursão em subdiretórios 
-      - '.github/workflows/**'  # Roda se mudar o pipeline
+      #- '.github/workflows/**'  # Roda se mudar o pipeline
       #- '.tflint.hcl'          # Roda se mudar as regras de lint
 
   pull_request:
@@ -82,7 +82,7 @@ jobs:
       #   with:
       #     directory: ${{ env.WORKING_DIR }}
       #     framework: terraform
-      #     # soft_fail: true -> Use isso no início para o pipeline não travar 
+      #     # soft_fail: false -> Use isso no início para o pipeline não travar - false é o default, ou seja, o pipeline falha se encontrar problemas de segurança. Use true para permitir que o pipeline continue mesmo se forem encontrados problemas de segurança, o que é útil durante a fase de configuração inicial do Checkov ou enquanto você corrige os avisos. Depois de corrigir os problemas, você pode definir isso como false para garantir que o pipeline falhe se forem encontrados novos problemas de segurança. Isso ajuda a manter um padrão de segurança mais rigoroso no futuro.
       #     # enquanto você corrige os avisos.
       #     soft_fail: true  # Permite que o pipeline continue mesmo se forem encontrados problemas de segurança
       #     output_format: cli
