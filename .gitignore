@@ -2,7 +2,7 @@
 
 # 1. Pastas do Terraform (contêm plugins e módulos baixados)
 .terraform/
-.terraform.lock.hcl
+#.terraform.lock.hcl
 
 # 2. Arquivos de Estado (Embora você use S3, o Terraform cria backups locais às vezes)
 *.tfstate
