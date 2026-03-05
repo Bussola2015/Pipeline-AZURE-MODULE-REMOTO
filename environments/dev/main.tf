@@ -34,6 +34,7 @@ provider "azurerm" {
   features {}
 }
 
+# Modulo só utiliza VNET e SUBNET, assim temos que criar NSG e ASSOCIATION NSG e SUBNET 'snsga' no network.tf
 module "network" {
   source  = "Azure/network/azurerm"
   version = "5.3.0"
